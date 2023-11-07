@@ -12,12 +12,11 @@ Use the option to download the script before running it.
 ```
 curl --proxy http://proxy:port -O https://packages.corelight.com/install/repositories/corelight/stable/script.rpm.sh
 ```
-There are a few areas within the script you will need to change as well. I will add those at a later time.
+You may need to edit the `script.rpm.sh` file provided by Corelight to add the proxy to a curl command. I did it for good measure.
 ```
 vim script.rpm.sh
+curl --proxy "proxy:port" -sSf "${yum_repo_config_url}" > $yum_repo_path     #Near the bottom, above the long list of echo commands
 ```
-(placeholder)
-
 If anything fails to download or error out, you may have to opt for the manual installation. If that happens, it's likely you will have to download the EPEL repository to install certain packages. For me, gpgme failed to install.
 ```
 subscription-manager repos --enable codeready-builder-for-rhel-8-$(arch)-rpms
@@ -35,9 +34,61 @@ chmod +x script.rpm.sh
 You need to make sure yum uses your proxy by changing your `yum.conf` file:
 ```
 vim /etc/yum.conf
-no_proxy=*.<domain> (trusted domains/IPs on your network)
+no_proxy=*.<domain> #Trusted domains/IPs on your network
 proxy=http://<proxy>:<port>
 export no_proxy=*.<domain>
 ```
 
-(More soon-ish)
+## Section 3.4
+
+### 3.4.2 Upload and manage rulesets
+```
+export http_proxy=proxy:port
+export https_proxy=proxy:port
+pip3 install --proxy proxy:port suricata-update
+```
+
+## Section 3.5 Configure local resource monitoring with Grafana
+
+```
+yum-config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
+vim /etc/yum.repos.d/docker-ce.repo            #Delete all but the first instance, and change RHEL to centos
+yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin --allowerasing
+vim /usr/lib/systemd/system/docker.service     #Add Environment="HTTP_PROXY=proxy:port" to Service section
+pip3 install --proxy proxy:port --upgrade --ignored-installed pip setuptools
+pip3 install --proxy proxy:port docker-compose
+git config --global http.proxy proxy:port
+```
+I also added an environment section to the docker-compose.yml, `vim /prometheus-grafana/docker-compose.yml`, for the proxy settings as well that should look something like this:
+```
+prometheus:
+  environment:
+    http_proxy: proxy:port
+    https_proxy: proxy:port
+    no_proxy: proxy:port
+grafana:
+  environment:
+    http_proxy: proxy:port
+    https_proxy: proxy:port
+    no_proxy: proxy:port
+```
+I added a `config.json` file to `~/.docker` that should look similar to this:
+```
+{
+        "proxies": {
+                "default": {
+                        "httpProxy": "proxy:port",
+                        "httpsProxy": "proxy:port",
+                        "noProxy": "*.domain"
+                }
+        }
+}
+```
+Lastly, I added `http_proxy.sh` to `/etc/profile.d` with settings like this:
+```
+export HTTP_PROXY=proxy:port
+export HTTPS_PROXY=proxy:port
+export NO_PROXY=*.domain
+```
+
+Hopefully this will help get you through any proxy issues you may be having when installing the Software Sensor 1.0
