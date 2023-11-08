@@ -91,4 +91,4 @@ export HTTPS_PROXY=proxy:port
 export NO_PROXY=*.domain
 ```
 
-Hopefully this will help get you through any proxy issues you may be having when installing the Software Sensor 1.0
+With these settings you are able to get to the sensor at port 3000, but still troubleshooting getting to 8989.
