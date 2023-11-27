@@ -3,6 +3,26 @@ As you probably guessed from the title, this is a guide for getting Corelight VM
 
 ### Please note, we had some issues setting up Fleet Manager using the guide given to us from Corelight. I was able to get it running by changing a few of their settings. It will only be used during testing and not in production.
 
+## Requirements
+Make sure that when you have installed RHEL 8 that you make partitions as required by Corelight. I forgot to do this and had to manually create them. Save some time by doing it right the first time! These are the numbers I used:
+- /boot: 1G
+- /: 44G
+- SWAP: 5G
+- /tmp: 20G
+- /var: 80G
+
+## Proxmox Settings
+### Hardware Settings
+You should try to use these settings if possible for setting up Fleet Manager:
+- Memory: 32 GiB
+- Processors: 4 (1 socket, 4 cores)
+- Bios: SeaBIOS
+- SCSI Controller: VirtIO SCSI single
+- Hard Disk (scsi0): 50G
+- Hard Disk (scsi1): 100G
+- Network Device (net0): virtio=(mac),bridge=vmbr0
+### Options
+- Boot Order: scsi0
 
 ## Corelight Stable Package Repository
 Once you have RHEL 8.8 set up on Proxmox, you should be able to follow the guide with minor changes to account for the proxy server. Unfortunately, you can't run the initial script as it; you will need to download it and modify an internal `curl` command.
